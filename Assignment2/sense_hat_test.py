@@ -1,11 +1,48 @@
 from sense_hat import SenseHat
 import time
+import pandas as pd
 
 sense = SenseHat()
 
+idle_timer = 0
+eps = 0.05
+data = {
+	'x_acc': [],
+	'y_acc': [],
+	'z_acc': [],
+	'x_gyro': [],
+	'y_gyro': [],
+	'z_gyro': []
+	}
+
 while True:
-	accel_only = sense.get_accelerometer_raw()
-	pitch, roll, yaw = accel_only['x'], accel_only['y'], accel_only['z']
-	print(f"x: {pitch:4f}, y: {roll:.4f}, z: {yaw:.4f}")
+
+	if idle_timer > 40:
+		break
+
+	accel = sense.get_accelerometer_raw()
+	gyro = sense.get_gyroscope_raw()
+
+	x_acc, y_acc, z_acc = accel['x'], accel['y'], accel['z']
+	x_gyro, y_gyro, z_gyro = gyro['x'], gyro['y'], gyro['z']
+
+	if abs(x_gyro) < eps and abs(y_gyro) < eps and abs(z_gyro) < eps:
+		print(f'timer increased to {idle_timer}')
+		idle_timer += 1
+	else:
+		idle_timer = 0
+
+	data['x_acc'].append(x_acc)
+	data['y_acc'].append(y_acc)
+	data['z_acc'].append(z_acc)
+	data['x_gyro'].append(x_gyro)
+	data['y_gyro'].append(y_gyro)
+	data['z_gyro'].append(z_gyro)
+
+	print(f"ACCEL STATS:\nx: {x_acc:4f}, y: {y_acc:.4f}, z: {z_acc:.4f}")
+	print(f'GYRO STATS:\nx:{x_gyro:4f}, y: {y_gyro:4f}, z: {z_gyro:4f}')
 
 	time.sleep(0.1)
+
+dataframe = pd.DataFrame(data)
+dataframe.to_csv('idle.csv')
