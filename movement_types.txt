@@ -1,0 +1,17 @@
+Classes: 
+
+1. Idle
+2. Raise
+3. Rotate
+4. translation
+
+
+Data: 
+Position (x,y,z)
+Speed: (x', y', z')
+Acceleration: (x'', y'', z'')
+
+
+Sequences: 
+
+
