@@ -3,7 +3,7 @@ Classes:
 1. Idle (0,0,0)
 2. Raise 
 3. Rotate
-4. translation
+4. translation x
 
 
 Data: 
