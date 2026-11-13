@@ -17,14 +17,14 @@ data = {
 
 
 while True:
-    time.sleep(0.25)
+    time.sleep(0.005)
     accel = sense.get_accelerometer_raw()
     gyro = sense.get_gyroscope_raw()
 
     x_acc, y_acc, z_acc = accel['x'], accel['y'], accel['z']
     x_gyro, y_gyro, z_gyro = gyro['x'], gyro['y'], gyro['z']
 
-    
+
 
 
 
