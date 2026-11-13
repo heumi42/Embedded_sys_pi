@@ -1,4 +1,4 @@
-"""RGB image baseline: 8x8 average pooling -> flatten -> Random Forest.
+"""RGB baseline: keep lower 60% -> 8x8 average pooling -> flatten -> Random Forest.
 
 Run: python Assignment3/baaseline.py
 Requires numpy, Pillow, scikit-learn, matplotlib, and joblib.
@@ -18,12 +18,15 @@ from sklearn.metrics import accuracy_score, classification_report, ConfusionMatr
 ROOT = Path(__file__).parent
 CLASSES = ['empty', 'invalid', 'step1', 'step2', 'step3']
 POOL_SIZE = 8
+CROP_TOP_FRACTION = 0.4
 
 
 def extract_features(path):
     with Image.open(path) as handle:
         image = ImageOps.exif_transpose(handle).convert('RGB')
         pixels = np.asarray(image)
+    # Remove the top 40% before pooling; keep the lower 60% at full width.
+    pixels = pixels[int(pixels.shape[0] * CROP_TOP_FRACTION):]
     height, width = pixels.shape[:2]
     height = height // POOL_SIZE * POOL_SIZE
     width = width // POOL_SIZE * POOL_SIZE
@@ -81,14 +84,14 @@ def main():
     ConfusionMatrixDisplay.from_predictions(
         labels[test], predictions, labels=CLASSES, cmap='Blues', colorbar=False,
     )
-    plt.title(f'Random Forest — {POOL_SIZE}x{POOL_SIZE} average pooling + flatten')
+    plt.title(f'Random Forest — lower 60%, {POOL_SIZE}x{POOL_SIZE} avg pooling')
     plt.tight_layout()
     plt.savefig(output / 'confusion_matrix.png', dpi=180)
     plt.close()
     joblib.dump({
         'model': model, 'pool_size': POOL_SIZE, 'pooled_shape': expected_shape,
-        'classes': CLASSES,
-    }, output / 'random_forest.joblib', compress=3)
+        'classes': CLASSES, 'crop_top_fraction': CROP_TOP_FRACTION,
+    }, output / 'random_forest_lower60_avgpool8.joblib', compress=3)
     # Record the exact image split and holdout predictions for inspection.
     import csv
     with (output / 'split.csv').open('w', newline='') as handle:
