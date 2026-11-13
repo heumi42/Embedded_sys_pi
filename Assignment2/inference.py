@@ -19,7 +19,6 @@ def main():
     if args.window < 1 or args.batches < 0 or args.interval < 0:
         parser.error('window must be positive; batches and interval must be nonnegative')
 
-    # Load only trusted model files. Joblib, like pickle, requires matching versions.
     model = load(args.model)
     sense = SenseHat()
     completed = 0
@@ -34,7 +33,7 @@ def main():
                 time.sleep(args.interval)
 
             values = np.asarray(readings)
-            # Same four per-timestamp features and column order as training.
+
             features = pd.DataFrame({
                 'mean': values.mean(axis=1),
                 'std': values.std(axis=1, ddof=0),
@@ -43,7 +42,6 @@ def main():
             })
             predictions = model.predict(features)
             labels, counts = np.unique(predictions, return_counts=True)
-            # Predictions already contain class names, not numeric class IDs.
             label = labels[counts.argmax()]
             print(f'{label} ({counts.max()}/{len(predictions)} votes)', flush=True)
             completed += 1

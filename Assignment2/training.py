@@ -13,7 +13,7 @@ parser.add_argument('--data-dir', type=Path, default=Path(__file__).parent / 'da
 parser.add_argument('--model', type=Path, default=Path(__file__).parent / 'model.joblib')
 args = parser.parse_args()
 DATA_DIR = args.data_dir
-CLASSES = ['idle', 'rotation', 'translation', 'translation_x']
+CLASSES = ['idle', 'rotation', 'translation_x', 'translation']
 CHANNELS = ['x_acc', 'y_acc', 'z_acc', 'x_gyro', 'y_gyro', 'z_gyro']
 
 train_features, test_features = [], []
