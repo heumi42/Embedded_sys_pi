@@ -1,50 +1,55 @@
-from sense_hat import SenseHat
+"""Run on the Pi using a model trained with the same scikit-learn version."""
+import argparse
+from pathlib import Path
 import time
-import pickle
-import pandas as pd
+
+from joblib import load
 import numpy as np
-from joblib import dump, load
+import pandas as pd
+from sense_hat import SenseHat
 
 
-sense = SenseHat()
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--model', type=Path, default=Path(__file__).parent / 'model.joblib')
+    parser.add_argument('--window', type=int, default=10)
+    parser.add_argument('--batches', type=int, default=0, help='Stop after N predictions; 0 runs continuously.')
+    parser.add_argument('--interval', type=float, default=0.05)
+    args = parser.parse_args()
+    if args.window < 1 or args.batches < 0 or args.interval < 0:
+        parser.error('window must be positive; batches and interval must be nonnegative')
 
-model = pickle.loads('Assignment2/random_forest.pkl') 
+    # Load only trusted model files. Joblib, like pickle, requires matching versions.
+    model = load(args.model)
+    sense = SenseHat()
+    completed = 0
+    try:
+        while args.batches == 0 or completed < args.batches:
+            readings = []
+            for _ in range(args.window):
+                accel = sense.get_accelerometer_raw()
+                gyro = sense.get_gyroscope_raw()
+                readings.append([accel['x'], accel['y'], accel['z'],
+                                 gyro['x'], gyro['y'], gyro['z']])
+                time.sleep(args.interval)
+
+            values = np.asarray(readings)
+            # Same four per-timestamp features and column order as training.
+            features = pd.DataFrame({
+                'mean': values.mean(axis=1),
+                'std': values.std(axis=1, ddof=0),
+                'min': values.min(axis=1),
+                'max': values.max(axis=1),
+            })
+            predictions = model.predict(features)
+            labels, counts = np.unique(predictions, return_counts=True)
+            # Predictions already contain class names, not numeric class IDs.
+            label = labels[counts.argmax()]
+            print(f'{label} ({counts.max()}/{len(predictions)} votes)', flush=True)
+            completed += 1
+    except KeyboardInterrupt:
+        pass
 
 
-classes = {0: "idle", 1: "rotation", 2: "translation", 3: "translation_x"}
-
-data = {
-	'x_acc': [],
-	'y_acc': [],
-	'z_acc': [],
-	'x_gyro': [],
-	'y_gyro': [],
-	'z_gyro': []
-	}
-
-it = 0
-preds = []
-agg_stats = []
-while True:
-    accel = sense.get_accelerometer_raw()
-    gyro = sense.get_gyroscope_raw()
-
-    x_acc, y_acc, z_acc = accel['x'], accel['y'], accel['z']
-    x_gyro, y_gyro, z_gyro = gyro['x'], gyro['y'], gyro['z']
-
-    agg_stats.append([x_acc, y_acc, z_acc, x_gyro, y_gyro, z_gyro])
-
-    if len(agg_stats) > 10:
-        agg_stats = np.asarray(agg_stats)
-
-        features = pd.DataFrame({
-              'mean': np.mean(agg_stats, axis=1),
-              'std': np.std(agg_stats, axis=1),
-               'min': np.min(agg_stats, axis=1),
-               'max': np.max(agg_stats, axis=1),
-         })
-
-    predictions = model.predict(features)
-    pred = np.argmax(np.unique(predictions, return_counts=True)[1])
-
-    print(classes[pred])
+if __name__ == '__main__':
+    main()

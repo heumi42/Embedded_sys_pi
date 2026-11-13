@@ -1,13 +1,18 @@
 from pathlib import Path
+import argparse
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, ConfusionMatrixDisplay
-from joblib import dump, load
-import pickle
+from joblib import dump
 
-DATA_DIR = Path(__file__).parent / 'data'
+parser = argparse.ArgumentParser()
+parser.add_argument('--data-dir', type=Path, default=Path(__file__).parent / 'data')
+parser.add_argument('--model', type=Path, default=Path(__file__).parent / 'model.joblib')
+args = parser.parse_args()
+DATA_DIR = args.data_dir
 CLASSES = ['idle', 'rotation', 'translation', 'translation_x']
 CHANNELS = ['x_acc', 'y_acc', 'z_acc', 'x_gyro', 'y_gyro', 'z_gyro']
 
@@ -44,9 +49,9 @@ X_test = pd.concat(test_features, ignore_index=True)
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 
-model_path = DATA_DIR.parent / 'random_forest.pkl'
-
-dump(model, "model.joblib")
+args.model.parent.mkdir(parents=True, exist_ok=True)
+dump(model, args.model)
+print(f'Saved model to {args.model}')
 
 
 predictions = model.predict(X_test)
@@ -64,7 +69,7 @@ for label in CLASSES:
     accuracies[label] = correct / total if total else 0.0
     print(f'{label}: {accuracies[label]:.2%} ({correct}/{total})')
 
-plot_dir = DATA_DIR.parent / 'plots'
+plot_dir = Path(__file__).parent / 'plots'
 plot_dir.mkdir(parents=True, exist_ok=True)
 ConfusionMatrixDisplay.from_predictions(
     y_test, predictions, labels=CLASSES, cmap='Blues',
