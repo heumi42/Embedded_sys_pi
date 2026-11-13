@@ -5,10 +5,12 @@ from sense_hat import SenseHat
 import time
 from joblib import load
 import numpy as np
-
-POOL_SIZE = 16
+from pathlib import Path
 
 sense = SenseHat()
+saved = load(Path(__file__).parent / 'baseline_results' / 'random_forest_lower60_avgpool8.joblib')
+model = saved['model']
+POOL_SIZE = saved['pool_size']
 
 picam2 = Picamera2()
 
@@ -20,16 +22,15 @@ picam2.configure(config)
 
 picam2.start()
 
-model = load('random_forest.joblib')['model']
-
-steps = ['empty', 'step1', 'step2', 'step3']
+CLASSES = ['empty', 'invalid', 'step1', 'step2', 'step3']
 i = 0
 while True:
-    cur_step = steps[i]
+    cur_step = CLASSES [i]
     time.sleep(10)
 
     img = picam2.capture_array('main')
 
+    img = img[int(img.shape[0] * saved['crop_top_fraction']):]
     height, width = img.shape[:2]
     height = height // POOL_SIZE * POOL_SIZE
     width = width // POOL_SIZE * POOL_SIZE
