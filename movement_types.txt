@@ -1,17 +1,27 @@
 Classes: 
 
-1. Idle
-2. Raise
+1. Idle (0,0,0)
+2. Raise 
 3. Rotate
 4. translation
 
 
 Data: 
 Position (x,y,z)
-Speed: (x', y', z')
 Acceleration: (x'', y'', z'')
 
-
+acc < 0.01
 Sequences: 
 
+
+if idle_ts:
+    idle_count 
+else:
+    idle
+
+
+ts:
+x:1,y:1,z:1
+x:....
+ts1:
 
