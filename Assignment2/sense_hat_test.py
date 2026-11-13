@@ -7,8 +7,6 @@ parser = argparse.ArgumentParser(description='Collect Sense HAT movement data.')
 parser.add_argument(
 	'movement',
 	nargs='?',
-	default='idle',
-	choices=['idle', 'raise', 'rotate', 'translation'],
 	help='Movement label used for the CSV filename (default: idle).',
 )
 args = parser.parse_args()
@@ -27,8 +25,8 @@ data = {
 	}
 
 while True:
-
-	if idle_timer > 40:
+	time_start = time.time()
+	if idle_timer > 20:
 		break
 
 	accel = sense.get_accelerometer_raw()
@@ -53,7 +51,9 @@ while True:
 	print(f"ACCEL STATS:\nx: {x_acc:4f}, y: {y_acc:.4f}, z: {z_acc:.4f}")
 	print(f'GYRO STATS:\nx:{x_gyro:4f}, y: {y_gyro:4f}, z: {z_gyro:4f}')
 
-	time.sleep(0.01)
+	time_end = time.time()
+
+	print(time_end - time_start)
 
 dataframe = pd.DataFrame(data)
 dataframe.to_csv(f'{args.movement}.csv')
