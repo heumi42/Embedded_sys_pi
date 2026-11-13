@@ -7,6 +7,8 @@ parser = argparse.ArgumentParser(description='Collect Sense HAT movement data.')
 parser.add_argument(
 	'movement',
 	nargs='?',
+	default='idle',
+	choices=['idle', 'raise', 'rotate', 'translation'],
 	help='Movement label used for the CSV filename (default: idle).',
 )
 args = parser.parse_args()
