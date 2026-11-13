@@ -24,6 +24,7 @@ def extract_features(path):
     with Image.open(path) as handle:
         image = ImageOps.exif_transpose(handle).convert('RGB')
         pixels = np.asarray(image)
+        pixels = pixels[int(pixels.shape[0] * 0.4):]
     height, width = pixels.shape[:2]
     height = height // POOL_SIZE * POOL_SIZE
     width = width // POOL_SIZE * POOL_SIZE

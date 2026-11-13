@@ -6,7 +6,7 @@ import time
 from joblib import load
 import numpy as np
 
-POOL_SIZE = 16
+POOL_SIZE = 8
 
 sense = SenseHat()
 
@@ -26,9 +26,10 @@ steps = ['empty', 'step1', 'step2', 'step3']
 i = 0
 while True:
     cur_step = steps[i]
-    time.sleep(10)
+    time.sleep(5)
 
     img = picam2.capture_array('main')
+    img = img[int(img.shape[0] * 0.4):]
 
     height, width = img.shape[:2]
     height = height // POOL_SIZE * POOL_SIZE
@@ -40,11 +41,15 @@ while True:
     pooled = pooled.flatten()
 
     pred = model.predict(pooled.reshape(1, -1))
-    print(pred)
+    print(f'Predicted: {pred[0]}, Expected: {cur_step}')
 
-    if pred == cur_step:
+    if pred[0] == cur_step:
         sense.clear((0, 255, 0))
-        sense.show_text('Continue')
-    else:
+        time.sleep(0.5)
+        sense.show_message('Continue')
+        i += 1
+    elif pred[0] != cur_step or pred[0] == 'step3' == cur_step:
         sense.clear((255, 0, 0))
-        sense.show_text('Reset')
+        time.sleep(0.5)
+        sense.show_message('Reset')
+        i = 0
