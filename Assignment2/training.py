@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, ConfusionMatrixDisplay
+import pickle
 
 DATA_DIR = Path(__file__).parent / 'data'
 CLASSES = ['idle', 'rotation', 'translation', 'translation_x']
@@ -42,6 +43,11 @@ X_test = pd.concat(test_features, ignore_index=True)
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 
+model_path = DATA_DIR.parent / 'random_forest.pkl'
+with model_path.open('wb') as handle:
+    pickle.dump(model, handle)
+
+
 predictions = model.predict(X_test)
 
 print(f'Training timestamps: {len(X_train)}, test timestamps: {len(X_test)}')
@@ -49,6 +55,7 @@ print(classification_report(y_test, predictions, zero_division=0))
 
 accuracies = {'overall': accuracy_score(y_test, predictions)}
 print('Per-class accuracy (correct / test samples in that class):')
+
 for label in CLASSES:
     total = sum(actual == label for actual in y_test)
     correct = sum(actual == label and predicted == label
