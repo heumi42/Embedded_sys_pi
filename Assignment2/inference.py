@@ -3,12 +3,15 @@ import time
 import pickle
 import pandas as pd
 import numpy as np
+from joblib import dump, load
 
 
 sense = SenseHat()
-model = pickle.loads('Assignment2/random_forest.pkl') 
-classes = {0: "idle", 1: "rotation", 2: "translation", 3: "translation_x"}
 
+model = pickle.loads('Assignment2/random_forest.pkl') 
+
+
+classes = {0: "idle", 1: "rotation", 2: "translation", 3: "translation_x"}
 
 data = {
 	'x_acc': [],
@@ -33,7 +36,6 @@ while True:
 
     if len(agg_stats) > 10:
         agg_stats = np.asarray(agg_stats)
-
 
         features = pd.DataFrame({
               'mean': np.mean(agg_stats, axis=1),

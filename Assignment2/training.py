@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, ConfusionMatrixDisplay
+from joblib import dump, load
 import pickle
 
 DATA_DIR = Path(__file__).parent / 'data'
@@ -44,8 +45,8 @@ model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 
 model_path = DATA_DIR.parent / 'random_forest.pkl'
-with model_path.open('wb') as handle:
-    pickle.dump(model, handle)
+
+dump(model, "model.joblib")
 
 
 predictions = model.predict(X_test)
