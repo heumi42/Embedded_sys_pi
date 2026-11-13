@@ -26,7 +26,8 @@ def extract_features(path):
         image = ImageOps.exif_transpose(handle).convert('RGB')
         pixels = np.asarray(image)
     # Remove the top 40% before pooling; keep the lower 60% at full width.
-    pixels = pixels[int(pixels.shape[0] * CROP_TOP_FRACTION):]
+    crop_top_rows = int(pixels.shape[0] * CROP_TOP_FRACTION)
+    pixels = pixels[crop_top_rows:, :, :]  # Keep only the bottom 60%.
     height, width = pixels.shape[:2]
     height = height // POOL_SIZE * POOL_SIZE
     width = width // POOL_SIZE * POOL_SIZE
@@ -70,6 +71,8 @@ def main():
     model = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
     model.fit(X[train], labels[train])
     predictions = model.predict(X[test])
+    print(f'Crop: discard top {CROP_TOP_FRACTION:.0%}; keep lower {1 - CROP_TOP_FRACTION:.0%}')
+    print(f'Average pooling: {POOL_SIZE}x{POOL_SIZE}')
     print(f'Pooled RGB shape: {expected_shape}; flattened features: {X.shape[1]}')
     print(f'Train images: {len(train)}, test images: {len(test)}')
     print(f'Overall accuracy: {accuracy_score(labels[test], predictions):.2%}')
