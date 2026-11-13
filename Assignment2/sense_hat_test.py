@@ -1,6 +1,17 @@
+import argparse
 from sense_hat import SenseHat
 import time
 import pandas as pd
+
+parser = argparse.ArgumentParser(description='Collect Sense HAT movement data.')
+parser.add_argument(
+	'movement',
+	nargs='?',
+	default='idle',
+	choices=['idle', 'raise', 'rotate', 'translation'],
+	help='Movement label used for the CSV filename (default: idle).',
+)
+args = parser.parse_args()
 
 sense = SenseHat()
 
@@ -42,7 +53,7 @@ while True:
 	print(f"ACCEL STATS:\nx: {x_acc:4f}, y: {y_acc:.4f}, z: {z_acc:.4f}")
 	print(f'GYRO STATS:\nx:{x_gyro:4f}, y: {y_gyro:4f}, z: {z_gyro:4f}')
 
-	time.sleep(0.1)
+	time.sleep(0.01)
 
 dataframe = pd.DataFrame(data)
-dataframe.to_csv('idle.csv')
+dataframe.to_csv(f'{args.movement}.csv')
